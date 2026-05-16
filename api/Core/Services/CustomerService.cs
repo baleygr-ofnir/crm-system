@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Net;
 using Microsoft.Azure.Cosmos;
 using api.Data.Entities;
 using Microsoft.Azure.Cosmos.Linq;
@@ -22,47 +23,65 @@ public class CustomerService
         return response.Resource;
     }
 
-    public async Task<Customer> GetCustomerAsync(string id)
+    public async Task<Customer?> GetCustomerAsync(string id)
     {
-        var response = await _container.ReadItemAsync<Customer>(
-            id,
-            new PartitionKey(id));
-        return response.Resource;
+        try
+        {
+            var response = await _container.ReadItemAsync<Customer>(
+                id,
+                new PartitionKey(id));
+            return response.Resource;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
     }
 
-    public async Task<IEnumerable<Customer>> GetCustomersAsync()
+    public async Task<IEnumerable<Customer>?> GetCustomersAsync()
     {
-        var queryable = _container.GetItemLinqQueryable<Customer>();
-
-        using var iterator = queryable.ToFeedIterator();
-
-        var results = new List<Customer>();
-
-        while (iterator.HasMoreResults)
+        try
         {
-            var response = await iterator.ReadNextAsync();
-            results.AddRange(response);
-        }
+            var queryable = _container.GetItemLinqQueryable<Customer>();
+            using var iterator = queryable.ToFeedIterator();
+            var results = new List<Customer>();
 
-        return results;
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
+            }
+
+            return results;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
     }
 
-    public async Task<IEnumerable<Customer>> SearchCustomerAsync(string query)
+    public async Task<IEnumerable<Customer>?> SearchCustomerAsync(string query)
     {
-        var queryable = _container.GetItemLinqQueryable<Customer>()
-            .Where(c => c.Name.Contains(query)
-             || c.SalesRep.Name.Contains(query));
-
-        using var iterator = queryable.ToFeedIterator();
-        var results = new List<Customer>();
-
-        while (iterator.HasMoreResults)
+        try
         {
-            var response = await iterator.ReadNextAsync();
-            results.AddRange(response);
-        }
+            var queryable = _container.GetItemLinqQueryable<Customer>()
+                .Where(c => c.Name.Contains(query)
+                            || c.SalesRep.Name.Contains(query));
+            using var iterator = queryable.ToFeedIterator();
+            var results = new List<Customer>();
 
-        return results;
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
+            }
+
+            return results;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
     }
 
     public async Task<Customer?> UpdateCustomerAsync(Customer updatedCustomer, string id)
@@ -75,7 +94,45 @@ public class CustomerService
                 new PartitionKey(id));
             return response.Resource;
         }
-        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<Customer?> PatchCustomerAsync(CustomerPatchRequest patchedCustomer, string id)
+    {
+        List<PatchOperation> operations = new();
+
+        if (patchedCustomer.Name is not null)
+            operations.Add(PatchOperation.Replace("/name", patchedCustomer.Name));
+
+        if (patchedCustomer.Title is not null)
+            operations.Add(PatchOperation.Replace("/title", patchedCustomer.Title));
+
+        if (patchedCustomer.Email is not null)
+            operations.Add(PatchOperation.Replace("/email", patchedCustomer.Email));
+
+        if (patchedCustomer.Phone is not null)
+            operations.Add(PatchOperation.Replace("/phone", patchedCustomer.Phone));
+
+        if (patchedCustomer.Address is not null)
+            operations.Add(PatchOperation.Replace("/address", patchedCustomer.Address));
+
+        if (patchedCustomer.SalesRep is not null)
+            operations.Add(PatchOperation.Replace("/salesRep", patchedCustomer.SalesRep));
+
+        try
+        {
+            var response = await _container.PatchItemAsync<Customer>(
+                id,
+                new PartitionKey(id),
+                operations
+            );
+
+            return response.Resource;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
         }
@@ -90,7 +147,7 @@ public class CustomerService
                 new PartitionKey(id));
             return true;
         }
-        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return false;
         }
