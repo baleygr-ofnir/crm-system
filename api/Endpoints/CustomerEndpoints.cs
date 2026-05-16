@@ -1,8 +1,5 @@
 using api.Core.Services;
 using api.Data.Entities;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Azure.Cosmos;
 
 namespace api.Endpoints;
 
@@ -33,7 +30,7 @@ public static class CustomerEndpoints
         // GET CUSTOMERS
         group.MapGet("/", async (string? search, CustomerService dbService) =>
         {
-            IEnumerable<Customer> response;
+            IEnumerable<Customer>? response;
             if (search is not null)
             {
                 response = await dbService.SearchCustomerAsync(search);
@@ -55,6 +52,15 @@ public static class CustomerEndpoints
 
             return (response is { } updated)
                 ? Results.Ok(updated)
+                : Results.NotFound();
+        });
+
+        group.MapPatch("/{id}", async (CustomerPatchRequest patchedCustomer, string id, CustomerService dbService) =>
+        {
+            var response = await dbService.PatchCustomerAsync(patchedCustomer, id);
+
+            return (response is { } patched)
+                ? Results.Ok(patched)
                 : Results.NotFound();
         });
 
