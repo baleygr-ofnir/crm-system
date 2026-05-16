@@ -5,7 +5,7 @@ namespace api.Data.Entities;
 public record SalesRep
 {
     [JsonProperty("id")]
-    public required string Id { get; init; }
+    public string Id { get; init; } = Guid.NewGuid().ToString();
 
     [JsonProperty("name")]
     public required string Name { get; init; }
