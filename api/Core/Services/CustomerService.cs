@@ -47,11 +47,11 @@ public class CustomerService
         return results;
     }
 
-    public async Task<IEnumerable<Customer>> SearchCustomerAsync(string searchTerm)
+    public async Task<IEnumerable<Customer>> SearchCustomerAsync(string query)
     {
         var queryable = _container.GetItemLinqQueryable<Customer>()
-            .Where(c => c.Name.Contains(searchTerm)
-             || c.SalesRep.Name.Contains(searchTerm));
+            .Where(c => c.Name.Contains(query)
+             || c.SalesRep.Name.Contains(query));
 
         using var iterator = queryable.ToFeedIterator();
         var results = new List<Customer>();
@@ -65,13 +65,20 @@ public class CustomerService
         return results;
     }
 
-    public async Task<Customer> UpdateCustomerAsync(Customer updatedCustomer, string id)
+    public async Task<Customer?> UpdateCustomerAsync(Customer updatedCustomer, string id)
     {
-        var response = await _container.ReplaceItemAsync(
-            updatedCustomer,
-            id,
-            new PartitionKey(id));
-        return response.Resource;
+        try
+        {
+            var response = await _container.ReplaceItemAsync(
+                updatedCustomer,
+                id,
+                new PartitionKey(id));
+            return response.Resource;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
     }
 
     public async Task<bool> DeleteCustomerAsync(string id)
@@ -83,7 +90,7 @@ public class CustomerService
                 new PartitionKey(id));
             return true;
         }
-        catch (Exception ex)
+        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             return false;
         }
