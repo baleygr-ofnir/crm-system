@@ -4,7 +4,8 @@ namespace api.Data.Entities;
 
 public record Customer
 {
-    [JsonProperty("id")] public string Id { get; init; } = Guid.NewGuid().ToString();
+    [JsonProperty("id")]
+    public string Id { get; init; } = Guid.NewGuid().ToString();
 
     [JsonProperty("name")]
     public required string Name { get; init; }
