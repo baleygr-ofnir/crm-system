@@ -31,9 +31,17 @@ public static class CustomerEndpoints
         });
 
         // GET CUSTOMERS
-        group.MapGet("/", async (CustomerService dbService) =>
+        group.MapGet("/", async (string? search, CustomerService dbService) =>
         {
-            var response = await dbService.GetCustomersAsync();
+            IEnumerable<Customer> response;
+            if (search is not null)
+            {
+                response = await dbService.SearchCustomerAsync(search);
+            }
+            else
+            {
+                response = await dbService.GetCustomersAsync();
+            }
 
             return (response is { } customers)
                 ? Results.Ok(customers)
