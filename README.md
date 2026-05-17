@@ -1,6 +1,6 @@
 # CRM System
 
-A Customer Relationship Management (CRM) system built with a .NET 10 Minimal API and an Azure Function, backed by Azure Cosmos DB. This project demonstrates a decoupled architecture where the API handles data operations, and an Azure Function reacts to database changes to trigger asynchronous email notifications.
+Basic Customer Relationship Management (CRM) system built with a .NET 10 Minimal API and an Azure Function, backed by Azure Cosmos DB. This project demonstrates a decoupled architecture where the API handles data operations, and an Azure Function reacts to database changes to trigger asynchronous email notifications.
 
 ---
 
@@ -24,7 +24,7 @@ A Customer Relationship Management (CRM) system built with a .NET 10 Minimal API
 
 * [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 * [Azure Cosmos DB Emulator](https://learn.microsoft.com/en-us/azure/cosmos-db/local-emulator) (for local development)
-* An SMTP Server account (e.g., SendGrid, Mailtrap) for testing email notifications.
+* An SMTP Server account (e.g., SendGrid, Mailtrap, or any regular email provider that allows for it with app tokens or similar) for testing email notifications.
 
 ---
 
@@ -42,7 +42,9 @@ Configure your Cosmos DB connection string and database details:
   }
 }
 ```
-_(Example with CosmosDB Emulator )_
+_Example with local CosmosDB Emulator, due to self-signed certificate from that, CosmosClientOptions is configured with:_  
+`ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator`  
+_**Not recommended for a live one**_
 
 ### Azure Function (`azfunc/local.settings.json`)
 
@@ -64,6 +66,8 @@ Provide the connection string for Cosmos DB and your SMTP credentials:
   }
 }
 ```
+_Need to add an extra property at the end in CosmosDbConnection if using local CosmosDB Emulator with self-signed certificate:_  
+`;DisableServerCertificateValidation=True;`
 
 ---
 
