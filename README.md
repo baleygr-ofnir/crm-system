@@ -44,7 +44,7 @@ Configure your Cosmos DB connection string and database details:
 ```
 _Example with local CosmosDB Emulator, due to self-signed certificate from that, CosmosClientOptions is configured with:_  
 `ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator`  
-_**Not recommended for a live one, remove the HttpClientFactory for this and also change ConnectionMode.Gateway to ConnectionMode.Direct as per recommendations**_
+_**Not recommended for a live environment, remove the HttpClientFactory for this and also change ConnectionMode.Gateway to ConnectionMode.Direct as per recommendations**_
 
 ### Azure Function (`azfunc/local.settings.json`)
 
