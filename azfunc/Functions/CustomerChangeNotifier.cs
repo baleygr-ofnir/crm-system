@@ -61,7 +61,7 @@ public class CustomerChangeNotifier
 
         string htmlTable = $@"
             <h2>Customer Change Notification</h2>
-            <p>Information of created or updated customer information to responsible seller:</p>
+            <p>Since you are the registered sales representative responsible for this customer,<br>you are notified of changes to their details:</p>
             <table border='1' cellpadding='8' style='border-collapse: collapse; font-family: Arial, sans-serif;'>
                 <tr><th style='background-color:#f2f2f2; text-align: left;'>Customer Detail</th><th style='background-color: #f2f2f2; text-align: left;'>Value</th></tr>
                 <tr><td><strong>ID</strong></td><td>{customer.Id}</td></tr>
