@@ -1,4 +1,6 @@
+using System.Net;
 using api.Core.Services;
+using api.Data;
 using Scalar.AspNetCore;
 using api.Data.Entities;
 using api.Endpoints;
@@ -73,7 +75,12 @@ public class Program
             var databaseResponse = await cosmosClient.CreateDatabaseIfNotExistsAsync(databaseName);
             var database = databaseResponse.Database;
 
-            await database.CreateContainerIfNotExistsAsync(containerName, "/id");
+            var containerResponse = await database.CreateContainerIfNotExistsAsync(containerName, "/id");
+            if (containerResponse.StatusCode == HttpStatusCode.Created)
+            {
+                var customerService = services.GetRequiredService<CustomerService>();
+                await DatabaseSeeder.SeedCustomersAsync(customerService);
+            }
         }
 
         // Configure the HTTP request pipeline.
