@@ -54,15 +54,14 @@ public class CustomerChangeNotifier
                            throw new ArgumentNullException("", "SmtpUsername is missing");
         var smtpPassword = _configuration["SmtpPassword"] ??
                            throw new ArgumentNullException("", "SmtpPassword is missing");
-        var targetEmail = _configuration["TargetEmail"] ??
-                          throw new ArgumentNullException("", "TargetEmail is missing");
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress("CRM Change Notifier",smtpUsername));
-        message.To.Add(new MailboxAddress("Receiver", targetEmail));
+        message.To.Add(new MailboxAddress(customer.SalesRep.Name, customer.SalesRep.Email));
         message.Subject = $"Customer {customer.Id} changed";
 
         string htmlTable = $@"
             <h2>Customer Change Notification</h2>
+            <p>Information of created or updated customer information to responsible seller:</p>
             <table border='1' cellpadding='8' style='border-collapse: collapse; font-family: Arial, sans-serif;'>
                 <tr><th style='background-color:#f2f2f2; text-align: left;'>Customer Detail</th><th style='background-color: #f2f2f2; text-align: left;'>Value</th></tr>
                 <tr><td><strong>ID</strong></td><td>{customer.Id}</td></tr>
