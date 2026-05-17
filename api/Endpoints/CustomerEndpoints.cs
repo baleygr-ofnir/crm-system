@@ -1,5 +1,6 @@
 using api.Core.Services;
 using api.Data.Entities;
+using Microsoft.AspNetCore.Mvc;
 
 namespace api.Endpoints;
 
@@ -28,12 +29,12 @@ public static class CustomerEndpoints
         });
 
         // GET CUSTOMERS
-        group.MapGet("/", async (string? search, CustomerService dbService) =>
+        group.MapGet("/", async ([FromQuery(Name = "search")] string? query, CustomerService dbService) =>
         {
             IEnumerable<Customer>? response;
-            if (search is not null)
+            if (query is not null)
             {
-                response = await dbService.SearchCustomerAsync(search);
+                response = await dbService.SearchCustomerAsync(query);
             }
             else
             {

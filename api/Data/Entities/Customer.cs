@@ -9,6 +9,9 @@ public record Customer
 
     [JsonProperty("name")]
     public required string Name { get; init; }
+
+    [JsonProperty("normalizedName")]
+    public string NormalizedName { get; init; }
     
     [JsonProperty("title")]
     public required string Title { get; init; }
