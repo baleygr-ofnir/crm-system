@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Net;
 using Microsoft.Azure.Cosmos;
@@ -62,26 +63,16 @@ public class CustomerService
 
     public async Task<IEnumerable<Customer>?> SearchCustomerAsync(string query)
     {
-        try
-        {
-            var queryable = _container.GetItemLinqQueryable<Customer>()
-                .Where(c => c.Name.Contains(query)
-                            || c.SalesRep.Name.Contains(query));
-            using var iterator = queryable.ToFeedIterator();
-            var results = new List<Customer>();
+        var customers = await GetCustomersAsync();
 
-            while (iterator.HasMoreResults)
-            {
-                var response = await iterator.ReadNextAsync();
-                results.AddRange(response);
-            }
+        if (customers == null) return null;
 
-            return results;
-        }
-        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-            return null;
-        }
+        var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
+        var compareOptions = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace;
+        var filtered = customers.Where(c => compareInfo.IndexOf(c.Name, query, compareOptions) >= 0
+                                   || compareInfo.IndexOf(c.SalesRep.Name, query, compareOptions) >= 0).ToList();
+
+        return filtered;
     }
 
     public async Task<Customer?> UpdateCustomerAsync(Customer updatedCustomer, string id)
